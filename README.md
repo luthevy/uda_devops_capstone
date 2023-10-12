@@ -16,4 +16,3 @@ I meet all rubics:
       Green for old version
       Blue for new version
 3. Images will push on docker hub to esay to collabration
-test
