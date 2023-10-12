@@ -1,6 +1,6 @@
 
 # UDACITY CAPSTONE PROJECT
-#GET_PASSES_THIS_REPO_UDACITY_PLEASE
+
 I meet all rubics:
 1. Create Github repository with project code.
 2. Use image repository to store Docker images
