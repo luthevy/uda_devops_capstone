@@ -3,7 +3,7 @@ kind: ClusterConfig
 
 metadata:
   name: k8s-demo
-  region: us-west-2
+  region: us-east-1
 
 iam:
   withOIDC: true
@@ -17,4 +17,4 @@ nodeGroups:
     volumeSize: 80
     ssh:
       allow: true
-      publicKeyName: udacity
+      publicKeyName: vockey

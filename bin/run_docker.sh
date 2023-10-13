@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Build image to push it to docker hub
-CONTAINER_NAME="de150191/capstone_project"
+CONTAINER_NAME="luthevy2001/capstone_project"
 VERSION=1.0
 CONTAINER_PORT=80
 HOST_PORT=80

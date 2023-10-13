@@ -1,6 +1,6 @@
 FROM python:3.7.3-stretch
 
-LABEL author="longhoangnguyen191@gmail.com"
+LABEL author="luthevy2001@gmail.com"
 
 # Working Directory
 WORKDIR /app

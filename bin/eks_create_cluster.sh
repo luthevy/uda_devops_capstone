@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 CLUSTER="production"
-REGION="us-west-2"
+REGION="us-east-1"
 CLUSTER_NAME="${CLUSTER}.${REGION}.eksctl.io"
 
 # Check if cluster already exists and create if not
