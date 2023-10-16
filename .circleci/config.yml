@@ -1,85 +1,91 @@
 version: 2.1
-
+# Define CircleCI’s Reusable Configuration features
 orbs:
   docker: circleci/docker@2.1.2
   aws-eks: circleci/aws-eks@2.2.0
   kubernetes: circleci/kubernetes@1.3
 
+# Install all necessary dependencies for the jobs
 commands:
-  # Command to install awscli and gettext-base
-  install-awscli-gettext:
-    description: Install awscli and gettext-base
+  # Download AWS Command Line Interface (AWS CLI), gettext-base 
+  download-awscli-gettext:
+    description: To download AWS Command Line Interface (AWS CLI), gettext-base 
     steps:
       - run:
-          name: Install awscli and gettext-base
+          name: Downloading AWS Command Line Interface, gettext-base
           command: |
             sudo apt update
             sudo apt-get install awscli
             sudo apt-get install gettext-base
 
-  # Command to install aws-iam-authenticator
-  install-aws-iam-authenticator:
-    description: Install aws-iam-authenticator
+  # Dowload aws-iam-authenticator binary
+  download-aws-iam-authenticator-binary:
+    description: To download aws-iam-authenticator binary
     steps:
       - run:
-          name: Install aws-iam-authenticator
+          name: Dowloading aws-iam-authenticator binary
           command: |
+            # Using curl to download the aws-iam-authenticator binary via the specified URL
             curl -o aws-iam-authenticator curl -o aws-iam-authenticator \
-              https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/aws-iam-authenticator
+            https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/aws-iam-authenticator
+
+            # Grant download permission
             chmod +x ./aws-iam-authenticator
+
+            # Move installed aws-iam-authenticator to folder /usr/local/bin
             sudo mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
 
-  # Command to install kubectl
-  install-kubectl:
-    description: Install kubectl
+  # Download Kubernetes command-line tool (kubectl)
+  download-kubectl:
+    description: To download Kubernetes command-line tool (kubectl)
     steps:
       - run:
-          name: Install kubectl
+          name: Downloading Kubernetes command-line tool (kubectl)
           command: |
-            # Download the kubectl binary from the specified URL using curl
+            # Using curl to download the aws-iam-authenticator binary via the specified URL
             curl -o kubectl https://amazon-eks.s3-us-west-2.amazonaws.com/1.13.7/2019-06-11/bin/linux/amd64/kubectl
 
-            # Add execute permission (+x) to the downloaded kubectl binary
+            # Grant download permission
             chmod +x ./kubectl
 
-            # Move the kubectl binary to the /usr/local/bin directory
-            # Note: This requires administrative privileges, hence 'sudo' is used.
+            # Move installed kubectl to folder /usr/local/bin
             sudo mv ./kubectl /usr/local/bin/kubectl
 
+# List of jobs
 jobs:
-  # Job to run linting
+  # 1: Running linting
   run-lint:
     docker:
       - image: cimg/python:3.7.13
     steps:
+      # Restore cached dependencies based on the checksum of "app/requirements.txt" and save under the value v1-dependencies-{{ checksum "app/requirements.txt" }}
       - checkout
-      # Restore cached dependencies based on the checksum of "app/requirements.txt"
-      # The cached dependencies were saved with the key "v1-dependencies-{{ checksum "app/requirements.txt" }}"
-      # If a matching cache is found, it will be restored, otherwise, it will fallback to a more general cache key.
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "app/requirements.txt" }}
-
+            # To fall back if no maching
             - v1-dependencies-
+      # Download dependencies using step install in Makefile
       - run:
-          name: Install dependencies
+          name: Downloading dependencies
           command: |
             chmod -R +x ./bin/
-            python3 -m venv .devops-capstone
-            source .devops-capstone/bin/activate
+            python3 -m venv .env
+            source .env/bin/activate
             make install
+      # Save cached dependencies based on the checksum of "app/requirements.txt" and save under the value v1-dependencies-{{ checksum "app/requirements.txt" }}
       - save_cache:
           paths:
-            - ./.devops-capstone
+            - ./.env
           key: v1-dependencies-{{ checksum "app/requirements.txt" }}
       - run:
           name: Run lint
           command: |
-            source .devops-capstone/bin/activate
+            source .env/bin/activate
             make lint
 
-  # Job to build and push Docker image to Docker Hub
-  build-and-push-docker-image-to-docker-hub:
+  # 2: Building and pushing Docker image to Docker Hub
+  build-push-image-to-docker-hub:
     docker:
       - image: cimg/node:13.8.0
     steps:
@@ -87,27 +93,24 @@ jobs:
       - setup_remote_docker:
           version: 19.03.13
       - run:
-          name: Build and push docker image
+          name: Building and pushing Docker image to Docker hub
           command: |
             export VERSION=$(<app/version.txt)
 
-            # Build docker image udacity-capstone-project
-            docker build -t udacity-capstone-project app
+            # Building Docker image udacity-devops-capstone
+            docker build -t udacity-devops-capstone app
 
-            # Make tag for docker image udacity-capstone-project
-            docker tag udacity-capstone-project ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
-            docker tag udacity-capstone-project ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
+            # Creating tags for the Docker image: latest for the latest version, VERSION for the current app version
+            docker tag udacity-devops-capstone ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
+            docker tag udacity-devops-capstone ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
 
-            # Ensure we're logged in to Docker Hub and push the images
+            # Login Docker hub with personal credentials
             docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
-            # I push docker image with two tags:
-            # - "version" - version from file "app/version.txt"
-            # - "latest" - the latest version
             docker push ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
             docker push ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
 
-  # Job to deploy the green version
+  # 3: Job to deploy the green version
   deploy-green:
     docker:
       - image: cimg/python:3.7.13

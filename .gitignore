@@ -8,7 +8,6 @@ log.txt
 *.sublime-workspace
 .vscode/
 npm-debug.log*
-*.pem
 *.csv
 .idea/
 .ionic/
