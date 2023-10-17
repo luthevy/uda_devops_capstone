@@ -159,6 +159,7 @@ jobs:
 
             # Print the hostname of the load balancer to the console.
             echo "LOAD_BALANCER: $LOAD_BALANCER"
+            
 
   # 4: Setting up a manual approval
   getting-manual-approval:
@@ -190,6 +191,14 @@ jobs:
 
             # Passing CircleCI environment variables to the k8s/deployment.yaml file
             envsubst < k8s/service.yaml | kubectl apply --filename -
+            
+            # Get pod
+            POD=$(kubectl get pod)
+            echo "POD: $_POD"
+            
+            # Get services
+            SERVICE=$(kubectl get service)
+            echo "SERVICE: $SERVICE"
 
   # 6: Removing the old version (blue version)
   removing-old-blue-version:
