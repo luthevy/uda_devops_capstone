@@ -2,7 +2,7 @@
 
 # Docker personal credentials and initialized version
 DOCKER_HUB_ID="luthevy2001"
-DOCKER_REPOSITORY="capstone-project"
+DOCKER_REPOSITORY="capstone_project"
 VERSION="1.0"
 
 # Create dockerpath
