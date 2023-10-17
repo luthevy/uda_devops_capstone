@@ -27,6 +27,7 @@ plugins/ios.json
 $RECYCLE.BIN/
 postgres_dev/
 logfile
+kubectl
 
 .DS_Store
 Thumbs.db
