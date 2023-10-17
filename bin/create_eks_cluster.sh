@@ -13,5 +13,5 @@ else
     echo
     echo "Creating cluster..."
     chmod +x ./bin/eksctl
-    ./bin/eksctl create cluster --config-file=./infra/cluster.yml
+    ./bin/eksctl create cluster --config-file=./infra/create_eks_cluster.yml
 fi
