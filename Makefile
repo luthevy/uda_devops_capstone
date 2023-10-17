@@ -9,17 +9,17 @@ install:
 	pip install --upgrade pip &&\
 	    pip install -r app/requirements.txt
 	echo "Installing: hadolint..."
-	bash ./bin/install_hadolint.sh
+	./bin/install_hadolint.sh
 	echo
 	echo "Installing: kubectl"
-	bash ./bin/install_kubectl.sh
+	./bin/install_kubectl.sh
 	echo
 	echo "Installing: eksctl"
-	bash ./bin/install_eksctl.sh
+	./bin/install_eksctl.sh
 
 lint:
 	# Lint Dockerfile using hadolint
-	bash ./bin/hadolint app/Dockerfile
+	./bin/hadolint app/Dockerfile
 	# Lint Python source code using pylint
 	pylint --disable=R,C,W1203,W1202 app/app.py
 
@@ -29,16 +29,16 @@ run-app:
 
 # Build the Docker image for the application
 build-docker:
-	bash ./bin/build_docker.sh
+	./bin/build_docker.sh
 
 # Build and run the Docker container
 run-docker: build-docker
-	bash ./bin/run_docker.sh
+	./bin/run_docker.sh
 	
 # Upload the Docker image to a repository (presumably Docker Hub)
 upload-docker: build-docker
-	bash ./bin/upload_docker.sh
+	./bin/upload_docker.sh
 	
 # Create an EKS cluster (Amazon Elastic Kubernetes Service)
 eks-create-cluster:
-	bash ./bin/eks_create_cluster.sh	
+	./bin/create_eks_cluster.sh	
