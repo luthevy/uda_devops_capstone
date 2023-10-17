@@ -194,7 +194,7 @@ jobs:
             
             # Get pod
             POD=$(kubectl get pod)
-            echo "POD: $_POD"
+            echo "POD: $POD"
             
             # Get services
             SERVICE=$(kubectl get service)
