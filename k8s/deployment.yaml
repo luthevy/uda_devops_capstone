@@ -5,7 +5,7 @@ kind: Deployment
 # Metadata section for the Deployment resource
 metadata:
   # The name of the Deployment resource, using a dynamic label version
-  name: udacity-capstone-project-${LABEL_VERSION}
+  name: capstone-flask-app-${LABEL_VERSION}
 
 # Specification section for the Deployment resource
 spec:
@@ -15,7 +15,7 @@ spec:
   # Selector to determine which pods this Deployment should manage
   selector:
     matchLabels:
-      app: udacity-capstone-project
+      app: capstone-flask-app
       version: ${LABEL_VERSION}
 
   # Pod template used by the Deployment to create new pods
@@ -24,7 +24,7 @@ spec:
     metadata:
       # Labels to be applied to the pods created from this template
       labels:
-        app: udacity-capstone-project
+        app: capstone-flask-app
         version: ${LABEL_VERSION}
 
     # Specification for the pod template
@@ -32,7 +32,7 @@ spec:
       # Containers that should be part of the pod
       containers:
         # Container name
-        - name: udacity-capstone-project
+        - name: capstone-flask-app
           # Docker image to use for the container, using a dynamic Docker image tag
           image: ${DOCKER_IMAGE}
           # Ports to expose in the container

@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: udacity-capstone-project-1-0
+  name: capstone-flask-app-1-0
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: udacity-capstone-project
+      app: capstone-flask-app
       version: 1-0
   template:
     metadata:
       labels:
-        app: udacity-capstone-project
+        app: capstone-flask-app
         version: 1-0
     spec:
       containers:
-        - name: udacity-capstone-project
-          image: de150191/udacity-capstone-project:1.0
+        - name: capstone-flask-app
+          image: luthevy2001/capstone-flask-app:1.0
           ports:
             - containerPort: 80

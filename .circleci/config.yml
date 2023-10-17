@@ -85,7 +85,7 @@ jobs:
             make lint
 
   # 2: Building and pushing Docker image to Docker Hub
-  build-push-image-to-docker-hub:
+  building-and-pushing-image-to-docker-hub:
     docker:
       - image: cimg/node:13.8.0
     steps:
@@ -95,176 +95,151 @@ jobs:
       - run:
           name: Building and pushing Docker image to Docker hub
           command: |
+            # Get the version number from file "app/version.txt"
             export VERSION=$(<app/version.txt)
 
-            # Building Docker image udacity-devops-capstone
-            docker build -t udacity-devops-capstone app
+            # Building Docker image capstone-flask-app
+            docker build -t capstone-flask-app app
 
             # Creating tags for the Docker image: latest for the latest version, VERSION for the current app version
-            docker tag udacity-devops-capstone ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
-            docker tag udacity-devops-capstone ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
+            docker tag capstone-flask-app ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
+            docker tag capstone-flask-app ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
 
             # Login Docker hub with personal credentials
             docker login -u $DOCKER_LOGIN -p $DOCKER_PASSWORD
 
+            # Push image to Docker hub
             docker push ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
             docker push ${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:lastest
 
-  # 3: Job to deploy the green version
-  deploy-green:
+  # 3: Deploying the green version
+  deploying-green-version:
     docker:
       - image: cimg/python:3.7.13
     steps:
       - checkout
-      - install-awscli-gettext
-      - install-aws-iam-authenticator
-      - install-kubectl
+      - download-awscli-gettext
+      - download-aws-iam-authenticator-binary
+      - download-kubectl
       - run:
-          name: Connect to cluster
+          name: Connecting to cluster
           command: |
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
       - run:
-          name: Deploy new version as green
+          name: Deploying new version (as green)
           command: |
             # Get the version from file "app/version.txt"
             export VERSION=$(<app/version.txt)
-            # Get the Docker Hub ID from environment variable "DOCKER_HUB_ID"
-            export DOCKER_IMAGE=${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
-            # Get the version from file "app/version.txt" and replace "." with "-"
-            export LABEL_VERSION=${VERSION/./-}
 
-            # Print the variables
-            echo "DOCKER_IMAGE: $DOCKER_IMAGE"
+            # Get the Docker Hub ID from CircleCI environment variable "DOCKER_HUB_ID"
+            export DOCKER_IMAGE=${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}:${VERSION}
+
+            # Get the version from file "app/version.txt"
+            export LABEL_VERSION=${VERSION/./-}
 
             # Print LABEL_VERSION
             echo "LABEL_VERSION: $LABEL_VERSION"
 
-            # Print Docker Hub ID
+            # Print CircleCI environment variables
+            echo "DOCKER_IMAGE: $DOCKER_IMAGE"
             echo "DOCKER_HUB_ID: $DOCKER_HUB_ID"
             echo "DOCKER_REPOSITORY: $DOCKER_REPOSITORY"
 
-            # Apply environment variable substitution to the k8s/deployment.yaml file
-            # using 'envsubst', and then apply the modified YAML to the Kubernetes cluster.
+            # Passing CircleCI environment variables to the k8s/deployment.yaml file
             envsubst < k8s/deployment.yaml | kubectl apply --filename -
 
-
-            # Apply environment variable substitution to the k8s/service-green.yaml file
-            # using 'envsubst', and then apply the modified YAML to the Kubernetes cluster.
+            # Passing CircleCI environment variables to the k8s/deployment.yaml file green version
             envsubst < k8s/service-green.yaml | kubectl apply --filename -
 
-
-
-            # Wait for 3 seconds to allow the changes to be fully applied before checking the load balancer's hostname.
-
-            # Get the hostname of the load balancer associated with the 'udacity-capstone-project-green' service
-            # using 'kubectl get services' with a custom JSONPath expression.
-            # The hostname is then assigned to the 'LOAD_BALANCER' variable.
-            sleep 3
+            # Delaying for 5 seconds and check for Load Balancer's host name
+            sleep 5
             LOAD_BALANCER=$(kubectl get services \
-              udacity-capstone-project-green \
-              --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+            capstone-flask-app-green \
+            --output jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
             # Print the hostname of the load balancer to the console.
             echo "LOAD_BALANCER: $LOAD_BALANCER"
 
-  # Job to need for manual approval
-  need-manual-approval:
+  # 4: Setting up a manual approval
+  getting-manual-approval:
     docker:
       - image: cimg/node:13.8.0
     steps:
-      - run: echo "A hold job to wait for a manual approval to make deploy as new blue"
+      - run: echo "Waiting for user approval to make new deploy as new blue version"
 
-  # Job to deploy the new blue version
-  deploy-new-blue:
+  # 5: Deploying the new blue version
+  deploying-new-blue-version:
     docker:
       - image: cimg/python:3.7.13
     steps:
       - checkout
-      - install-awscli-gettext
-      - install-aws-iam-authenticator
-      - install-kubectl
+      - download-awscli-gettext
+      - download-aws-iam-authenticator-binary
+      - download-kubectl
       - run:
-          name: Connect to cluster
+          name: Connecting to cluster
           command: |
-            # Connect to cluster using the AWS CLI
+            # Connecting to already created cluster
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
       - run:
-          name: Target new version — new blue
+          name: Pointing new version as new blue deploy
           command: |
-            # Read the content of the "app/version.txt" file and assign it to the "VERSION" variable
+            # Get the version from file "app/version.txt"
             export VERSION=$(<app/version.txt)
-
-            # Replace any occurrences of dots (.) in the "VERSION" variable with dashes (-)
-            # For example, if VERSION="1.2.3", LABEL_VERSION will become "1-2-3"
             export LABEL_VERSION=${VERSION/./-}
 
-            # Print the "LABEL_VERSION" variable to the console
-            echo "LABEL_VERSION: $LABEL_VERSION"
-
-
-            # Apply environment variable substitution to the k8s/service.yaml file
-            # using 'envsubst', and then apply the modified YAML to the Kubernetes cluster.
-            # This step is likely used to update the service's configuration with the new version label.
+            # Passing CircleCI environment variables to the k8s/deployment.yaml file
             envsubst < k8s/service.yaml | kubectl apply --filename -
 
-  # Job to remove the old blue version
-  remove-old-blue:
+  # 6: Removing the old version (blue version)
+  removing-old-blue-version:
     docker:
       - image: cimg/python:3.7.13
     steps:
       - checkout
-      - install-awscli-gettext
-      - install-aws-iam-authenticator
-      - install-kubectl
+      - download-awscli-gettext
+      - download-aws-iam-authenticator-binary
+      - download-kubectl
       - run:
-          name: Connect to cluster
+          name: Connecting to cluster
           command: |
-            # Connect to cluster using the AWS CLI and kubectl
+            # Connect to already created cluster
             aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
       - run:
-          name: Remove the old version udacity-capstone-project
+          name: Removing the old version of capstone-flask-app
           command: |
-            # Read the content of the "app/version.txt" file and assign it to the "VERSION" variable
+            # Get the version from file "app/version.txt"
             export VERSION=$(<app/version.txt)
-
-            # Replace any occurrences of dots (.) in the "VERSION" variable with dashes (-)
-            # For example, if VERSION="1.2.3", LABEL_VERSION will become "1-2-3"
             export LABEL_VERSION=${VERSION/./-}
 
-            # Print the "LABEL_VERSION" variable to the console
-            echo "LABEL_VERSION: $LABEL_VERSION"
-
-            # Remove the old deployments of the udacity-capstone-project except the one with the new label version
-            # The for loop iterates over each deployment returned by "kubectl get deployments"
-            # If the deployment name is not equal to the expected deployment name with the new label version,
-            # then delete that deployment.
-            for deploy in $(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" | grep udacity-capstone-project);
+            # The for loop iterates "kubectl get deployments"
+            # If the deployment name is not equal to the expected deployment name with the new label version, deletes it
+            for deploy in $(kubectl get deployments -o jsonpath="{.items[*].metadata.name}" | grep capstone-flask-app);
             do
-              if [[ $deploy != udacity-capstone-project-$LABEL_VERSION ]];
+              if [[ $deploy != capstone-flask-app-$LABEL_VERSION ]];
               then
                 kubectl delete deployments $deploy
               fi
             done
 
-            # Remove the udacity-capstone-project-green service if it exists
-            # This is done using the 'kubectl get services' command and checking if the output contains the service name.
-            if kubectl get services | grep udacity-capstone-project-green;
+            # Remove the capstone-flask-app-green service if it exists
+            if kubectl get services | grep capstone-flask-app-green;
             then
-              kubectl delete services udacity-capstone-project-green
+              kubectl delete services capstone-flask-app-green
             fi
 
 workflows:
   default:
     jobs:
       - run-lint
-      - build-and-push-docker-image-to-docker-hub:
+      - building-and-pushing-image-to-docker-hub:
           requires: [run-lint]
-      - deploy-green:
-          requires: [build-and-push-docker-image-to-docker-hub]
-      - need-manual-approval:
+      - deploying-green-version:
+          requires: [building-and-pushing-image-to-docker-hub]
+      - getting-manual-approval:
           type: approval
-          requires: [deploy-green]
-      - deploy-new-blue:
-          requires: [need-manual-approval]
-      - remove-old-blue:
-          requires: [deploy-new-blue]
+          requires: [deploying-green-version]
+      - deploying-new-blue-version:
+          requires: [getting-manual-approval]
+      - removing-old-blue-version:
+          requires: [deploying-new-blue-version]

@@ -9,6 +9,6 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: udacity-capstone-project
+    app: capstone-flask-app
     version: ${LABEL_VERSION}
   type: LoadBalancer

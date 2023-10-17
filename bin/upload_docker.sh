@@ -1,24 +1,19 @@
 #!/usr/bin/env bash
-# This file tags and uploads an image to Docker Hub
 
-# Assumes that an image is built via `run_docker.sh`
+# Docker personal credentials and initialized version
 DOCKER_HUB_ID="luthevy2001"
-DOCKER_REPOSITORY="capstone_project"
+DOCKER_REPOSITORY="capstone-project"
 VERSION="1.0"
 
-# Step 1:
 # Create dockerpath
-# With pattern <hub-user>/<repo-name>
 dockerpath=${DOCKER_HUB_ID}/${DOCKER_REPOSITORY}
+echo "Docker ID with Image name: $dockerpath"
 
-# Step 2:
-# Authenticate & tag
-echo "Docker ID and Image: $dockerpath"
-# Login to docker hub
+# Login to Docker hub
 docker login -u ${DOCKER_HUB_ID} -p ${DOCKER_PASSWORD}
-# Tag image with dockerpath and version
+
+# Create a tag for the image and its version
 docker tag ${DOCKER_REPOSITORY}:${VERSION} ${dockerpath}:${VERSION}
 
-# Step 3:
-# Push image to a docker repository with dockerpath and version
+# Push Image to Docker hub
 docker push ${dockerpath}:${VERSION}

@@ -1,11 +1,10 @@
-## Hello World
+## Udacity Cloud Devops Engineering: Capstone Project
 
-Sample project
+A simple Flask app: Displaying an image from Unsplash
 
-<hr>
+<br>
 
 ## Description
 
-Demo simple project
-
-## Run
+- Create a Flask app using Python to display an image from Unsplash
+- Images will be change due to new version updated

@@ -1,9 +1,9 @@
 #!/bin/bash
-# This file assumes a role and exports the credentials as environment variables
+# Using to export AWS credentials as environment variables
 
 # Usage: source assume_role.sh
 unset http_proxy https_proxy no_proxy
-# Unset any existing HTTP_PROXY, HTTPS_PROXY, and NO_PROXY environment variables (if set).
+# Unset any existing HTTP_PROXY, HTTPS_PROXY, and NO_PROXY variables (if set).
 unset HTTP_PROXY HTTPS_PROXY NO_PROXY
 
 # Assume an AWS IAM role and get temporary security credentials.
