@@ -21,7 +21,7 @@ lint:
 	# Lint Dockerfile using hadolint
 	./bin/hadolint app/Dockerfile
 	# Lint Python source code using pylint
-	pylint --disable=R,C,W1203,W1202,DL3013 app/app.py
+	pylint --disable=R,C,W1203,W1202 app/app.py
 
 # Run the application (app.py)	
 run-app:
