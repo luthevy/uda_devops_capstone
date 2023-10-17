@@ -1,3 +1,4 @@
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/luthevy/uda_devops_capstone/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/luthevy/uda_devops_capstone/tree/main)
 # UDACITY CLOUD DEVOPS ENGINEERING: CAPSTONE PROJECT
 
 ## Project Rubrics:
